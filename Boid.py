@@ -6,6 +6,7 @@ Created on Wed May 16 16:38:21 2018
 @author: bennetwindt
 """
 
+# adding this comment as a test of github
 import pygame
 import random as rnd
 import scipy as sp

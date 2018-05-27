@@ -1,40 +1,79 @@
 import pygame
 import random as rnd
 import scipy as sp
-from Boid import Boid
+
 from Variables import *
 
-pygame.init()                                       # Initialise game
+from Goals import *
+from Boid import *
 
-screen = pygame.display.set_mode((width,height))    # Create screen
+from Noise import Va
 
-clock = pygame.time.Clock()                         # Set clock
+from Room import *
 
-for i in range(N):                                  # Create boids and add to sprite group
-    boid=Boid()
-    all_sprites.add(boid)
 
-mainloop = True                                     # Start running game
+pygame.init()                                           # Initialise game
+
+clock = pygame.time.Clock()                             # Set clock
+
+boidfunc(Divide)                                        # Check for special scenarios
+roomfunc(Room)
+    
+count=0                                                 # Set Count
+Count=[]
+    
+mainloop = True                                         # Run game
 
 while mainloop:
         
-    clock.tick(30)                                  # Set FPS
+    clock.tick(30)                                          # Set FPS
     
-    for event in pygame.event.get():                # Quitting mechanism
-        # User presses QUIT-button.
+    for event in pygame.event.get():                        # Quitting mechanism
         if event.type == pygame.QUIT:
-            mainloop = False 
+            mainloop = False
         elif event.type == pygame.KEYDOWN:
-            # User presses ESCAPE-Key
             if event.key == pygame.K_ESCAPE:
                 mainloop = False
+        if event.type == pygame.KEYDOWN:                    # Screenshot mechanism
+            if event.key == pygame.K_s:
+                pygame.image.save(screen,"Screenshot.jpg")
     
-    all_sprites.update()                            # Get new movement directions
-
-    screen.fill((255,255,255))                      # Recolour screen to remove sprite traces
-    all_sprites.draw(screen)                        # Move boids to new positions
-
+    count += 1                                              # Count each frame
+    Count.append(count)
     
-    pygame.display.flip()                           # Update screen
+    if len(all_sprites)==0:
+        mainloop = False
+    
+    if Frames != 0:                                         # Automated quitting function
+        if count == Frames:                             
+            mainloop = False
+    if mainloop == False:                                       # Print Frame Count
+        print("Total Frame Count: {0}".format ( count ))
+        
+        for sprite in goals:                                    # Print boids at each goal
+            print("Goal at {0}:".format(sprite.rect.x))
+            print("{0} boids collected".format (sprite.number))
+    
+    for sprite in all_sprites:                              # Check wall collisions
+        sprite.collide(room)
+                
+    for sprite in leaders:
+        sprite.collide(room)
+    
+    all_sprites.update()                                    # Get new movement direction
+    leaders.update()
+    informed.update()
+    
+    pygame.display.set_caption("Frame {0}".format(count))   # Frame count as window title
+    
+    screen.fill((255,255,255))                              # Recolour screen to remove sprite traces
+    
+    all_sprites.draw(screen)                                # Draw all objects onto the screen
+    leaders.draw(screen)
+    goals.draw(screen)
+    room.draw(screen)
+    informed.draw(screen)
+    
+    pygame.display.flip()                                   # Update screen
                 
 pygame.quit()

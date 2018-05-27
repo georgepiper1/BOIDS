@@ -35,6 +35,9 @@ class Boid(pygame.sprite.Sprite):
         
         return pos
 
+    def slowness
+    
+    
     
     def vcoh (self):                                                            # Cohesion function
         

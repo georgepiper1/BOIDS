@@ -7,36 +7,60 @@ Created on Wed May 16 16:48:02 2018
 """
 import pygame
 
+# Special Scenarios
+Divide = True
+Room = False
 
+#Frame Restriction
+Frames = 0
 
-# Dimensions of the screen
-width=1080
-height=900
+# Screen setup
+screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+w, h = pygame.display.get_surface().get_size()
 
-# Number of boids
-N=35
+width=w
+height=h
+#screen = pygame.display.set_mode((width,height))
+
+# Wrap around Screen:
+wrap = False
+
+# Number of boids / goals / leaders
+N=57
+G=0
+L=3
+I=0
 
 # Boid speed
-s=10
+s=5
 
 # Weighting factors
-C=1         # Cohesion 
-A=5         # Alignment 
-R=20        # Repulsion
+C=2             # Cohesion 
+A=3             # Alignment 
+R=6             # Repulsion
+D=2             # Goal-seeking
+Dinformed=10    # Goal-seeking for informed boids
+
+S=8             # Leader Strength
 
 # Radii
-repulsionradius = 50
-alignmentradius = 120
-cohesionradius = 250
+repulsionradius = 30
+alignmentradius = 100
+cohesionradius = 200
 
 # Noise amplitude
-n=0
-
-
+n=2
 
 # 0,0 vector
 zero=pygame.math.Vector2(0,0)
 
-#Sprite Group
+#Sprite Groups
 all_sprites=pygame.sprite.Group()
+goals=pygame.sprite.Group()
+leaders=pygame.sprite.Group()
+room=pygame.sprite.Group()
+informed=pygame.sprite.Group()
 
+# For two-goal-scenario:
+x=width/2
+y=height/2

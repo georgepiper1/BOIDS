@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun May 13 20:40:51 2018
-
-@author: bennetwindt
-"""
-
 import pygame
 import random as rnd
 import scipy as sp

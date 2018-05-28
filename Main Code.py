@@ -6,17 +6,65 @@ from Variables import *
 
 from Goals import *
 from Boid import *
+from Leader import *
+from Informed import *
 
 from Noise import Va
 
 from Room import *
+
+import matplotlib.pyplot as plt
+
+params = {
+   'axes.labelsize': 27,
+   'font.size': 22,
+   'font.family': 'sans-serif', 
+   'font.serif': 'Arial', 
+   'legend.fontsize': 27,
+   'xtick.labelsize': 20,
+   'ytick.labelsize': 20, 
+   'figure.figsize': [10,8] 
+} 
+plt.rcParams.update(params)
+plt.grid()
+
+plt.xlim(0,250)
+plt.ylim(0,1)
+
+plt.ylabel("Level of Emotion")
+plt.xlabel("Frame count")
 
 
 pygame.init()                                           # Initialise game
 
 clock = pygame.time.Clock()                             # Set clock
 
-boidfunc(Divide)                                        # Check for special scenarios
+
+# Check for special scenarios
+if Divide == True:                                      # Set up two-goal-scenario
+        
+    goal_left=Goal_left()
+    goals.add(goal_left)
+    
+    goal_right=Goal_right()
+    goals.add(goal_right)
+    
+for i in range(N):                                      # Create boids and add to sprite group
+    boid=Boid()
+    all_sprites.add(boid)
+  
+for i in range(L):                                      # Create leaders and add to sprite group
+    leader=Leader()
+    leaders.add(leader)
+
+for i in range(G):                                      # Create goals and add to sprite group
+    goal=Goal()
+    goals.add(goal)
+    
+for i in range(I):                                      # Create goals and add to sprite group
+    informer=Informed()
+    all_sprites.add(informer)
+                                                            
 roomfunc(Room)
     
 count=0                                                 # Set Count
@@ -53,6 +101,9 @@ while mainloop:
         for sprite in goals:                                    # Print boids at each goal
             print("Goal at {0}:".format(sprite.rect.x))
             print("{0} boids collected".format (sprite.number))
+            
+        for sprite in all_sprites:
+            plt.plot(Count,sprite.memory)
     
     for sprite in all_sprites:                              # Check wall collisions
         sprite.collide(room)

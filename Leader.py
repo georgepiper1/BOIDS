@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon May 28 20:50:36 2018
+
+@author: bennetwindt
+"""
+
 import pygame
 import random as rnd
 import scipy as sp
@@ -6,7 +14,7 @@ from Noise import noise
 from Goals import *
 
 
-class Boid(pygame.sprite.Sprite):
+class Leader(pygame.sprite.Sprite):
     
     def __init__ (self):                                                        # Define initial variables
         
@@ -31,6 +39,7 @@ class Boid(pygame.sprite.Sprite):
         self.noisey=noise(7)
         
         self.stop = False
+        
         self.q=rnd.randint(lowerlimit,100)/100    # Level of emotion
         
         self.E=1    # Expression
@@ -77,7 +86,7 @@ class Boid(pygame.sprite.Sprite):
             q += self.indiv_reception(sprite)/self.total_reception()*sprite.q
     
         return q
-#------------------------------------------------------------------------------        
+#------------------------------------------------------------------------------
     def pos (self):                                                             # Define position vector
         
         xpos=self.rect.x+7
@@ -86,32 +95,6 @@ class Boid(pygame.sprite.Sprite):
         pos=pygame.math.Vector2(xpos,ypos)
         
         return pos
-
-    def vcoh (self):                                                            # Cohesion function
-        
-        CoM=pygame.math.Vector2(0,0)
-        
-        count=0
-        
-        for sprite in all_sprites:
-            
-            d=sprite.pos()-self.pos()
-            dmag=d.length()
-            
-            if dmag < cohesionradius:
-  
-                CoM += sprite.pos()
-                count += 1
-        
-        if count != 0:
-            CoM=CoM/count
-        
-        CoMv=CoM-self.pos()
-        
-        if CoMv.length() == 0:
-            return zero
-        else:
-            return CoMv.normalize()
     
     def vrep (self):                                                            # Repulsion funciton
         
@@ -135,29 +118,6 @@ class Boid(pygame.sprite.Sprite):
             return zero
         else:
             return -dist.normalize()
-
-    def val (self):                                                             # Alignment function
-        
-        vav=pygame.math.Vector2(0,0)
-        count = 0
-        
-        for sprite in all_sprites:
-            
-            d=sprite.pos()-self.pos()
-            dmag=d.length()
-            
-            if dmag < alignmentradius:
-                
-                vav += sprite.vector
-                count += 1
-        
-        if count != 0:
-            vav=vav/count
-        
-        if vav.length() == 0:
-            return zero
-        else:
-            return vav.normalize()
 
     def direct (self):                                                          # Goalseeking Function
 
@@ -192,60 +152,8 @@ class Boid(pygame.sprite.Sprite):
         if direct.length() == 0:
             return zero
         else:
-            return direct.normalize()
+            return direct.normalize()    
 
-    def noise (self):                                                           # Noise generator
-        return pygame.math.Vector2(self.noisex,self.noisey)
-    
-    def leader (self):                                                          # Leadership
-        
-        vav=pygame.math.Vector2(0,0)
-        count = 0
-        
-        for sprite in leaders:
-            
-            d=sprite.pos()-self.pos()
-            dmag=d.length()
-            
-            if dmag < alignmentradius:
-                
-                vav += sprite.vector
-                count += 1
-        
-        if count != 0:
-            vav=vav/count
-        
-        if vav.length() == 0:
-            vav =zero
-        else:
-            vav =vav.normalize()
-            
-        
-        CoM=pygame.math.Vector2(0,0)
-        count=0
-        
-        for sprite in leaders:
-            
-            d=sprite.pos()-self.pos()
-            dmag=d.length()
-            
-            if dmag < cohesionradius:
-  
-                CoM += sprite.pos()
-                count += 1
-
-        if count != 0:
-            CoM=CoM/count
-        CoMv=CoM-self.pos()
-        
-        if CoMv.length() == 0:
-            CoMv= zero
-        else:
-            CoMv= CoMv.normalize()
-            
-        return A*vav+C*CoMv
-    
-    
     def collide (self,group):                                                   # Wall collision
         for sprite in group:
             if pygame.sprite.collide_rect(self,sprite):
@@ -271,11 +179,11 @@ class Boid(pygame.sprite.Sprite):
                             self.rect.top = sprite.rect.bottom
 
     def update (self):           
-    # Combined movement vector                  
-                        
-        desired_vector = N/(N+L)*(C*self.vcoh()+A*self.val())+R*self.vrep()+n*self.q*self.noise() + D*self.direct() + S*L/(N+L)*self.leader()
+    # Combined movement vector
+
+        desired_vector = n*self.q*self.noise() + D*self.direct() + R*self.vrep()
         new_vector = self.vector + desired_vector
-    
+        
         if new_vector.length() == 0:
             new_vector=zero
         else:
@@ -288,6 +196,11 @@ class Boid(pygame.sprite.Sprite):
         
         self.vector=new_vector
         
+        self.noisex=noise(7)
+        self.noisey=noise(7)
+        
+        pygame.draw.circle(self.image, (0,0,255), (7,7), 7, 0)
+
         if wrap == True:
             if self.rect.left > width:                                              # Allow movement across screen borders
                 self.rect.right = 0
@@ -306,36 +219,11 @@ class Boid(pygame.sprite.Sprite):
                 self.rect.bottom = height
             if self.rect.top < 0:
                 self.rect.top = 0
-                
+        
+               
         self.noisex=noise(7)
         self.noisey=noise(7)
     
         self.memory.append(self.q)
         
         self.q += self.total_reception()*(self.qstar()-self.q)
-    
-def boidfunc (Divide):                                                          # Grouping for different scenarios
-    
-    if Divide == True:                                      # Set up two-goal-scenario
-        
-        goal_left=Goal_left()
-        goals.add(goal_left)
-    
-        goal_right=Goal_right()
-        goals.add(goal_right)
-    
-    for i in range(N):                                      # Create boids and add to sprite group
-        boid=Boid()
-        all_sprites.add(boid)
-  
-    for i in range(L):                                      # Create leaders and add to sprite group
-        leader=Boid()
-        leaders.add(leader)
-    
-    for i in range(G):                                      # Create goals and add to sprite group
-        goal=Goal()
-        goals.add(goal)
-        
-    for i in range(I):                                      # Create goals and add to sprite group
-        informer=Boid()
-        informed.add(informer)

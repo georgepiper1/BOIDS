@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon May 28 20:52:13 2018
+
+@author: bennetwindt
+"""
+
 import pygame
 import random as rnd
 import scipy as sp
@@ -6,7 +14,7 @@ from Noise import noise
 from Goals import *
 
 
-class Boid(pygame.sprite.Sprite):
+class Informed(pygame.sprite.Sprite):
     
     def __init__ (self):                                                        # Define initial variables
         
@@ -31,6 +39,14 @@ class Boid(pygame.sprite.Sprite):
         self.noisey=noise(7)
         
         self.stop = False
+        
+        if Divide == True:                                                      # Picking one particular goal if informed sprite
+            for sprite in goals:
+                if sprite.rect.left < self.rect.left:
+                    targetx=sprite.pos.x
+                    targety=sprite.pos.y
+                    
+        self.target=pygame.math.Vector2(targetx,targety) 
         self.q=rnd.randint(lowerlimit,100)/100    # Level of emotion
         
         self.E=1    # Expression
@@ -159,43 +175,6 @@ class Boid(pygame.sprite.Sprite):
         else:
             return vav.normalize()
 
-    def direct (self):                                                          # Goalseeking Function
-
-        direct=pygame.math.Vector2(0,0)
-        
-        directcount=0
-        
-        for sprite in goals:
-            
-            directcount += 1
-            d=sprite.pos-self.pos()
-            dmag=d.length()
-            dweight=dmag**5
-            
-            if dmag < 25:
-                if self in all_sprites:
-                    self.kill()
-                    sprite.number += 1
-                if self in informed:
-                    self.kill()
-                    sprite.number += 1
-                if self in leaders:
-                    self.stop = True
-            else:
-                direct += 1/dweight*d  
-        
-        if directcount != 0:  
-            direct=direct/directcount
-        else:
-            direct=zero
-        
-        if direct.length() == 0:
-            return zero
-        else:
-            return direct.normalize()
-
-    def noise (self):                                                           # Noise generator
-        return pygame.math.Vector2(self.noisex,self.noisey)
     
     def leader (self):                                                          # Leadership
         
@@ -271,11 +250,19 @@ class Boid(pygame.sprite.Sprite):
                             self.rect.top = sprite.rect.bottom
 
     def update (self):           
-    # Combined movement vector                  
-                        
-        desired_vector = N/(N+L)*(C*self.vcoh()+A*self.val())+R*self.vrep()+n*self.q*self.noise() + D*self.direct() + S*L/(N+L)*self.leader()
+                                               # Combined movement vector                      
+        for sprite in goals:
+            
+            d=sprite.pos-self.pos()
+            dmag=d.length()
+            
+            if dmag < 25:
+                self.kill()
+                sprite.number += 1
+
+        desired_vector = C*self.vcoh()+R*self.vrep()+A*self.val()+n*self.q*self.noise() + Dinformed*(self.target-self.pos()).normalize() + S*L/(N+L)*self.leader()
         new_vector = self.vector + desired_vector
-    
+        
         if new_vector.length() == 0:
             new_vector=zero
         else:
@@ -287,6 +274,11 @@ class Boid(pygame.sprite.Sprite):
         self.rect.y += new_vector.y
         
         self.vector=new_vector
+        
+        self.noisex=noise(7)
+        self.noisey=noise(7)
+        
+        pygame.draw.circle(self.image, (0,255,0), (7,7), 7, 0)
         
         if wrap == True:
             if self.rect.left > width:                                              # Allow movement across screen borders
@@ -306,36 +298,11 @@ class Boid(pygame.sprite.Sprite):
                 self.rect.bottom = height
             if self.rect.top < 0:
                 self.rect.top = 0
-                
+            
+       
         self.noisex=noise(7)
         self.noisey=noise(7)
     
         self.memory.append(self.q)
         
         self.q += self.total_reception()*(self.qstar()-self.q)
-    
-def boidfunc (Divide):                                                          # Grouping for different scenarios
-    
-    if Divide == True:                                      # Set up two-goal-scenario
-        
-        goal_left=Goal_left()
-        goals.add(goal_left)
-    
-        goal_right=Goal_right()
-        goals.add(goal_right)
-    
-    for i in range(N):                                      # Create boids and add to sprite group
-        boid=Boid()
-        all_sprites.add(boid)
-  
-    for i in range(L):                                      # Create leaders and add to sprite group
-        leader=Boid()
-        leaders.add(leader)
-    
-    for i in range(G):                                      # Create goals and add to sprite group
-        goal=Goal()
-        goals.add(goal)
-        
-    for i in range(I):                                      # Create goals and add to sprite group
-        informer=Boid()
-        informed.add(informer)

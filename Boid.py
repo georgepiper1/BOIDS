@@ -280,8 +280,12 @@ class Boid(pygame.sprite.Sprite):
             new_vector=zero
         else:
             new_vector=new_vector.normalize()
+            
+        self.memory.append(self.q)
         
-        new_vector *= s
+        self.q += self.total_reception()*(self.qstar()-self.q)
+        
+        new_vector *= normal_speed + self.q* max_speed
         
         self.rect.x += new_vector.x
         self.rect.y += new_vector.y
@@ -310,9 +314,7 @@ class Boid(pygame.sprite.Sprite):
         self.noisex=noise(7)
         self.noisey=noise(7)
     
-        self.memory.append(self.q)
         
-        self.q += self.total_reception()*(self.qstar()-self.q)
     
 def boidfunc (Divide):                                                          # Grouping for different scenarios
     

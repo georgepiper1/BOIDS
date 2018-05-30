@@ -1,12 +1,3 @@
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed May 16 16:38:21 2018
-
-@author: bennetwindt
-"""
-
 import pygame
 import random as rnd
 import scipy as sp
@@ -40,15 +31,6 @@ class Boid(pygame.sprite.Sprite):
         self.noisey=noise(7)
         
         self.stop = False
-        
-        
-        self.q=rnd.randint(0,10)/10    # Level of emotion
-        
-        self.E=1    # Expression
-        self.d=6    # Openness
-    
-        
-        self.memory=[self.q]
         
     def pos (self):                                                             # Define position vector
         
@@ -242,42 +224,6 @@ class Boid(pygame.sprite.Sprite):
                         if self.rect.right > sprite.rect.left:
                             self.rect.top = sprite.rect.bottom
 
-# Panic Mechanism -------------------------------------------------------------                          
-    def a (self, sprite):        
-         
-        d=sprite.pos()-self.pos()
-        dmag=d.length()
-        
-        if dmag==0:
-            return 0
-        else:
-            return 1/dmag**2
-    
-    def indiv_reception (self, sprite):
-        
-        y=sprite.E*self.a(sprite)*self.d
-        
-        return y
-        
-    def total_reception (self):
-        
-        total=0
-        
-        for sprite in all_sprites:
-            total += self.indiv_reception(sprite)
-            
-        return total
-    
-    def qstar (self):
-        
-        q=0
-        
-        for sprite in all_sprites:
-            q += self.indiv_reception(sprite)/self.total_reception()*sprite.q
-    
-        return q
-#------------------------------------------------------------------------------
-
     def update (self):           
                                                # Combined movement vector
         if Divide == True:                                                      # Picking one particular goal if informed sprite
@@ -290,14 +236,14 @@ class Boid(pygame.sprite.Sprite):
                         target=pygame.math.Vector2(targetx,targety)                       
                         
         if self in leaders and Room == True:
-            new_vector = n*self.q*self.noise() + D*self.direct() + R*self.vrep()
+            new_vector = n*self.noise() + D*self.direct() + R*self.vrep()
         elif self in informed:
-            desired_vector = C*self.vcoh()+R*self.vrep()+A*self.val()+n*self.q*self.noise()+ Dinformed*(target-self.pos()).normalize() + S*L/(N+L)*self.leader()
+            desired_vector = C*self.vcoh()+R*self.vrep()+A*self.val()+n*self.noise()+B*self.avoid_borders() + Dinformed*(target-self.pos()).normalize() + S*L/(N+L)*self.leader()
             new_vector = self.vector + desired_vector
         elif self.stop == True:
             new_vector = zero
         else:
-            desired_vector = C*self.vcoh()+R*self.vrep()+A*self.val()+n*self.q*self.noise()+ D*self.direct() + S*L/(N+L)*self.leader()
+            desired_vector = C*self.vcoh()+R*self.vrep()+A*self.val()+n*self.noise()+B*self.avoid_borders() + D*self.direct() + S*L/(N+L)*self.leader()
             new_vector = self.vector + desired_vector
         
         if new_vector.length() == 0:
@@ -338,10 +284,6 @@ class Boid(pygame.sprite.Sprite):
                 self.rect.bottom = height
             if self.rect.top < 0:
                 self.rect.top = 0
-                
-        self.memory.append(self.q)
-        
-        self.q += self.total_reception()*(self.qstar()-self.q)
             
 def boidfunc (Divide):                                                          # Grouping for different scenarios
     
@@ -368,5 +310,3 @@ def boidfunc (Divide):                                                          
     for i in range(I):                                      # Create goals and add to sprite group
         informer=Boid()
         informed.add(informer)
-       
-    

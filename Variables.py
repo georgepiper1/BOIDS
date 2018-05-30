@@ -25,7 +25,8 @@ L=0
 I=0
 
 # Boid speed
-s=5
+max_speed=5
+normal_speed = 3
 
 # Weighting factors
 C=2             # Cohesion 

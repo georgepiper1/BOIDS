@@ -106,11 +106,11 @@ def roomfunc (Room):
         room.add(right(p,6,220,767,132))
         room.add(left(p,6,220,773,132))
         
-        room.add(right(p,6,110,997,75))
-        room.add(left(p,6,110,1003,75))
+        room.add(right(p,6,150,997,95))
+        room.add(left(p,6,150,1003,95))
         
-        room.add(right(p,6,80,997,218))
-        room.add(left(p,6,80,1003,218))
+        #room.add(right(p,6,80,997,218))
+        #room.add(left(p,6,80,1003,218))
         
         room.add(top(p,160,6,920,255))
         room.add(bottom(p,160,6,920,249))
@@ -133,8 +133,8 @@ def roomfunc (Room):
         room.add(bottom(p,100,6,664,98))
         room.add(top(p,100,6,664,104))
         
-        room.add(bottom(p,86,6,1043,180))
-        room.add(top(p,86,6,1043,185))
+        #room.add(bottom(p,86,6,1043,180))
+        #room.add(top(p,86,6,1043,185))
         
         goals.add(Exit_Left(p,756,814))
         goals.add(Exit_Right(p,1380 ,320))

@@ -1,20 +1,22 @@
 import pygame
 import random as rnd
 import scipy as sp
+import matplotlib.pyplot as plt
 
 from Variables import *
+from Input import *
 
 from Goals import *
 from Boid import *
 from Leader import *
 from Informed import *
+from Physicists import *
 
-from Noise import Va
-
+from Floorplan import *
 from Room import *
 
-import matplotlib.pyplot as plt
-
+from Noise import Va
+"""
 params = {
    'axes.labelsize': 27,
    'font.size': 22,
@@ -33,12 +35,13 @@ plt.ylim(0,1)
 
 plt.ylabel("Level of Emotion")
 plt.xlabel("Frame count")
-
-
+"""
 pygame.init()                                           # Initialise game
 
+font = pygame.font.Font(None, 32)
 clock = pygame.time.Clock()                             # Set clock
 
+button=Button()
 
 # Check for special scenarios
 if Divide == True:                                      # Set up two-goal-scenario
@@ -48,10 +51,11 @@ if Divide == True:                                      # Set up two-goal-scenar
     
     goal_right=Goal_right()
     goals.add(goal_right)
-    
-for i in range(N):                                      # Create boids and add to sprite group
-    boid=Boid()
-    all_sprites.add(boid)
+
+if Randomise == True:
+    for i in range(N):                                      # Create boids and add to sprite group
+        boid=Boid((0,0))
+        all_sprites.add(boid)
   
 for i in range(L):                                      # Create leaders and add to sprite group
     leader=Leader()
@@ -62,14 +66,32 @@ for i in range(G):                                      # Create goals and add t
     goals.add(goal)
     
 for i in range(I):                                      # Create goals and add to sprite group
-    informer=Informed()
+    informer=Informed((0,0))
     all_sprites.add(informer)
-                                                            
+
+if Blackett == True:
+    floorplan=Floorplan()
+    background=pygame.sprite.Group()
+    background.add(floorplan)
+    
+cohesion = InputBox(250, 680, 40, 40,C,font)
+alignment = InputBox(250, 730, 40, 40,A,font)
+repulsion = InputBox(250, 780, 40, 40,R,font)
+rcohesion = InputBox(470, 680, 40, 40,cohesionradius,font)
+ralignment = InputBox(470, 730, 40, 40,alignmentradius,font)
+rrepulsion = InputBox(470, 780, 40, 40,repulsionradius,font)
+input_boxes = [cohesion,alignment,repulsion,rcohesion,ralignment,rrepulsion]
+    
+physicists(Randomise)
 roomfunc(Room)
     
 count=0                                                 # Set Count
 Count=[]
-    
+Positionx=[]
+Positiony=[]
+
+Boxon=False
+
 mainloop = True                                         # Run game
 
 while mainloop:
@@ -84,8 +106,40 @@ while mainloop:
                 mainloop = False
         if event.type == pygame.KEYDOWN:                    # Screenshot mechanism
             if event.key == pygame.K_s:
-                pygame.image.save(screen,"Screenshot.jpg")
+                pygame.image.save(screen,"Screenshot.jpg")  
+        if Boxon==True:
+            for box in input_boxes:
+                box.handle_event(event,font)
+        button.handle_event(event)
     
+    if button.activate==True:
+        Boxon=True
+    else:
+        Boxon=False
+    
+    if Boxon==True:          
+        for box in input_boxes:
+            box.update()
+        
+        for s in all_sprites:
+            s.Coh=cohesion.value
+            s.Al=alignment.value
+            s.Rep=repulsion.value
+            s.RC=rcohesion.value
+            s.RA=ralignment.value
+            s.RR=rrepulsion.value
+            
+        for s in informed:
+            s.Coh=cohesion.value
+            s.Al=alignment.value
+            s.Rep=repulsion.value
+            s.RC=rcohesion.value
+            s.RA=ralignment.value
+            s.RR=rrepulsion.value
+            
+    Positionx.append(pygame.mouse.get_pos()[0])
+    Positiony.append(pygame.mouse.get_pos()[1])
+
     count += 1                                              # Count each frame
     Count.append(count)
     
@@ -102,13 +156,16 @@ while mainloop:
             print("Goal at {0}:".format(sprite.rect.x))
             print("{0} boids collected".format (sprite.number))
             
-        for sprite in all_sprites:
-            plt.plot(Count,sprite.memory)
+        #for sprite in all_sprites:
+            #plt.plot(Count,sprite.memory)
     
     for sprite in all_sprites:                              # Check wall collisions
         sprite.collide(room)
                 
     for sprite in leaders:
+        sprite.collide(room)
+        
+    for sprite in informed:
         sprite.collide(room)
     
     all_sprites.update()                                    # Get new movement direction
@@ -118,13 +175,32 @@ while mainloop:
     pygame.display.set_caption("Frame {0}".format(count))   # Frame count as window title
     
     screen.fill((255,255,255))                              # Recolour screen to remove sprite traces
+    #screen.blit(TextSurf, TextRect)
+
+    room.draw(screen)
+    goals.draw(screen)
+    
+    if Blackett == True:
+        screen.blit(floorplan.image, floorplan.rect)
+    
+    for box in input_boxes:
+        box.draw(screen,Boxon)
+        
+    if Boxon==True:
+        message_display("Cohesion:",140,700)
+        message_display("Alignment:",140,750)
+        message_display("Repulsion:",140,800)
+        message_display("Repulsion:",140,800)
+        
+        message_display("--Strength--",350,660)
+        message_display("--Radius--",565,660)
+
+    screen.blit(button.image, button.rect)
     
     all_sprites.draw(screen)                                # Draw all objects onto the screen
     leaders.draw(screen)
-    goals.draw(screen)
-    room.draw(screen)
     informed.draw(screen)
-    
+
     pygame.display.flip()                                   # Update screen
                 
 pygame.quit()

@@ -3,7 +3,7 @@ import random as rnd
 import scipy as sp
 from Variables import *
 
-# Box-Müller Transform:
+# Box-Muller Transform:
 
 def noise (eta):
    

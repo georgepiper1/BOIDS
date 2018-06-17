@@ -8,7 +8,7 @@ from Goals import *
 
 class Boid(pygame.sprite.Sprite):
     
-    def __init__ (self):                                                        # Define initial variables
+    def __init__ (self,spawn):                                                        # Define initial variables
         
         pygame.sprite.Sprite.__init__(self)                                         
         self.image = pygame.Surface((14,14),pygame.SRCALPHA,32)                     # Determine size
@@ -20,8 +20,16 @@ class Boid(pygame.sprite.Sprite):
         
         if Divide == True:                                                          # Set initial positions
             self.rect.center = (rnd.randint(x-100,x+100),rnd.randint(y-100,y+100))
+        if Bottleneck == True: 
+            self.rect.center = (rnd.randint(x-300,x-100),rnd.randint(y-100,y+100))
         elif Room == True:
             self.rect.center = (rnd.randint(447,993),rnd.randint(height/2-145,height/2+145))
+        elif Blackett == True:
+            if spawn == (0,0):
+                p=(width/2-720,height/2-450)
+                self.rect.center = (rnd.randint(p[0]+400,p[0]+690),rnd.randint(p[1]+115,p[1]+340))
+            else:
+                self.rect.center = spawn
         else:
             self.rect.center = (rnd.randint(100,width-100),rnd.randint(100,height-100))
         
@@ -35,7 +43,14 @@ class Boid(pygame.sprite.Sprite):
         
         self.E=1    # Expression
         self.d=6    # Openness
-    
+        
+        self.Coh=C
+        self.Al=A
+        self.Rep=R
+        
+        self.RC=cohesionradius
+        self.RA=alignmentradius
+        self.RR=repulsionradius
         
         self.memory=[self.q]
         
@@ -66,17 +81,21 @@ class Boid(pygame.sprite.Sprite):
         
         for sprite in all_sprites:
             total += self.indiv_reception(sprite)
-            
+        
         return total
     
     def qstar (self):
         
-        q=0
+        if self.total_reception() == 0:
+            return self.q
         
-        for sprite in all_sprites:
-            q += self.indiv_reception(sprite)/self.total_reception()*sprite.q
+        else:
+            q=0
+        
+            for sprite in all_sprites:
+                q += self.indiv_reception(sprite)/self.total_reception()*sprite.q
     
-        return q
+            return q
 #------------------------------------------------------------------------------        
     def pos (self):                                                             # Define position vector
         
@@ -90,7 +109,7 @@ class Boid(pygame.sprite.Sprite):
     def vcoh (self):                                                            # Cohesion function
         
         CoM=pygame.math.Vector2(0,0)
-        
+    
         count=0
         
         for sprite in all_sprites:
@@ -98,7 +117,7 @@ class Boid(pygame.sprite.Sprite):
             d=sprite.pos()-self.pos()
             dmag=d.length()
             
-            if dmag < cohesionradius:
+            if dmag < float(self.RC):
   
                 CoM += sprite.pos()
                 count += 1
@@ -122,7 +141,7 @@ class Boid(pygame.sprite.Sprite):
             d=sprite.pos()-self.pos()
             dmag=d.length()
             
-            if dmag < repulsionradius:
+            if dmag < float(self.RR):
                 if dmag > 0:
                     d=d.normalize()
                     d=1/dmag*d
@@ -146,7 +165,7 @@ class Boid(pygame.sprite.Sprite):
             d=sprite.pos()-self.pos()
             dmag=d.length()
             
-            if dmag < alignmentradius:
+            if dmag < float(self.RA):
                 
                 vav += sprite.vector
                 count += 1
@@ -207,7 +226,7 @@ class Boid(pygame.sprite.Sprite):
             d=sprite.pos()-self.pos()
             dmag=d.length()
             
-            if dmag < alignmentradius:
+            if dmag < float(self.RA):
                 
                 vav += sprite.vector
                 count += 1
@@ -229,7 +248,7 @@ class Boid(pygame.sprite.Sprite):
             d=sprite.pos()-self.pos()
             dmag=d.length()
             
-            if dmag < cohesionradius:
+            if dmag < float(self.RC):
   
                 CoM += sprite.pos()
                 count += 1
@@ -271,9 +290,9 @@ class Boid(pygame.sprite.Sprite):
                             self.rect.top = sprite.rect.bottom
 
     def update (self):           
-    # Combined movement vector                  
-                        
-        desired_vector = N/(N+L)*(C*self.vcoh()+A*self.val())+R*self.vrep()+n*self.q*self.noise() + D*self.direct() + S*L/(N+L)*self.leader()
+    # Combined movement vector
+    
+        desired_vector = N/(N+L)*(float(self.Coh)*self.vcoh()+float(self.Al)*self.val())+float(self.Rep)*self.vrep()+n*self.q*self.noise() + D*self.direct() + S*L/(N+L)*self.leader()
         new_vector = self.vector + desired_vector
     
         if new_vector.length() == 0:
@@ -313,7 +332,6 @@ class Boid(pygame.sprite.Sprite):
                 
         self.noisex=noise(7)
         self.noisey=noise(7)
-    
         
     
 def boidfunc (Divide):                                                          # Grouping for different scenarios

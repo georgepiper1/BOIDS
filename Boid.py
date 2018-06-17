@@ -29,7 +29,8 @@ class Boid(pygame.sprite.Sprite):
                 p=(width/2-720,height/2-450)
                 self.rect.center = (rnd.randint(p[0]+400,p[0]+690),rnd.randint(p[1]+115,p[1]+340))
             else:
-                self.rect.center = spawn
+                p=(width/2-720,height/2-450)
+                self.rect.center = (p[0]+spawn[0],p[1]+spawn[1])
         else:
             self.rect.center = (rnd.randint(100,width-100),rnd.randint(100,height-100))
         

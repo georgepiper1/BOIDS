@@ -80,12 +80,16 @@ class Leader(pygame.sprite.Sprite):
     
     def qstar (self):
         
-        q=0
+        if self.total_reception() == 0:
+            return self.q
         
-        for sprite in all_sprites:
-            q += self.indiv_reception(sprite)/self.total_reception()*sprite.q
+        else:
+            q=0
+        
+            for sprite in all_sprites:
+                q += self.indiv_reception(sprite)/self.total_reception()*sprite.q
     
-        return q
+            return q
 #------------------------------------------------------------------------------
     def pos (self):                                                             # Define position vector
         

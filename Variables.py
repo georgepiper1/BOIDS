@@ -3,9 +3,14 @@ import pygame
 # Special Scenarios
 Divide = False
 Room = False
+Blackett = False
+
+Bottleneck = False
+
+Randomise = False
 
 #Frame Restriction
-Frames = 250
+Frames = 0
 
 # Screen setup
 screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
@@ -19,7 +24,7 @@ height=h
 wrap = False
 
 # Number of boids / goals / leaders
-N=20
+N=25
 G=0
 L=0
 I=0
@@ -32,7 +37,7 @@ normal_speed = 3
 C=2             # Cohesion 
 A=3             # Alignment 
 R=6             # Repulsion
-D=3             # Goal-seeking
+D=2             # Goal-seeking
 Dinformed=4    # Goal-seeking for informed boids
 
 S=12             # Leader Strength
@@ -48,6 +53,8 @@ lowerlimit=0
 
 # 0,0 vector
 zero=pygame.math.Vector2(0,0)
+ihat=pygame.math.Vector2(1,0)
+jhat=pygame.math.Vector2(0,1)
 
 #Sprite Groups
 all_sprites=pygame.sprite.Group()
@@ -55,6 +62,7 @@ goals=pygame.sprite.Group()
 leaders=pygame.sprite.Group()
 room=pygame.sprite.Group()
 informed=pygame.sprite.Group()
+slides=pygame.sprite.Group()
 
 # For two-goal-scenario:
 x=width/2

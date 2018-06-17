@@ -16,7 +16,7 @@ from Goals import *
 
 class Informed(pygame.sprite.Sprite):
     
-    def __init__ (self):                                                        # Define initial variables
+    def __init__ (self,spawn):                                                        # Define initial variables
         
         pygame.sprite.Sprite.__init__(self)                                         
         self.image = pygame.Surface((14,14),pygame.SRCALPHA,32)                     # Determine size
@@ -30,6 +30,12 @@ class Informed(pygame.sprite.Sprite):
             self.rect.center = (rnd.randint(x-100,x+100),rnd.randint(y-100,y+100))
         elif Room == True:
             self.rect.center = (rnd.randint(447,993),rnd.randint(height/2-145,height/2+145))
+        elif Blackett == True:
+            if spawn == (0,0):
+                p=(width/2-720,height/2-450)
+                self.rect.center = (rnd.randint(p[0]+400,p[0]+690),rnd.randint(p[1]+115,p[1]+340))
+            else:
+                self.rect.center = spawn
         else:
             self.rect.center = (rnd.randint(100,width-100),rnd.randint(100,height-100))
         
@@ -40,18 +46,21 @@ class Informed(pygame.sprite.Sprite):
         
         self.stop = False
         
-        if Divide == True:                                                      # Picking one particular goal if informed sprite
-            for sprite in goals:
-                if sprite.rect.left < self.rect.left:
-                    targetx=sprite.pos.x
-                    targety=sprite.pos.y
-                    
-        self.target=pygame.math.Vector2(targetx,targety) 
+        # Picking one particular goal if informed sprite
+        for sprite in goals:
+            if sprite.rect.left < self.rect.left:
+                targetx=sprite.pos.x
+                targety=sprite.pos.y                    
+                self.target=pygame.math.Vector2(targetx,targety) 
+        
         self.q=rnd.randint(lowerlimit,100)/100    # Level of emotion
         
         self.E=1    # Expression
         self.d=6    # Openness
     
+        self.Coh=C
+        self.Al=A
+        self.Rep=R
         
         self.memory=[self.q]
         
@@ -87,12 +96,16 @@ class Informed(pygame.sprite.Sprite):
     
     def qstar (self):
         
-        q=0
+        if self.total_reception() == 0:
+            return self.q
         
-        for sprite in all_sprites:
-            q += self.indiv_reception(sprite)/self.total_reception()*sprite.q
+        else:
+            q=0
+        
+            for sprite in all_sprites:
+                q += self.indiv_reception(sprite)/self.total_reception()*sprite.q
     
-        return q
+            return q
 #------------------------------------------------------------------------------        
     def pos (self):                                                             # Define position vector
         
@@ -259,22 +272,23 @@ class Informed(pygame.sprite.Sprite):
             if dmag < 25:
                 self.kill()
                 sprite.number += 1
-
-        desired_vector = C*self.vcoh()+R*self.vrep()+A*self.val()+n*self.q*self.noise() + Dinformed*(self.target-self.pos()).normalize() + S*L/(N+L)*self.leader()
-        new_vector = self.vector + desired_vector
         
+        desired_vector = float(self.Coh)*self.vcoh()+float(self.Rep)*self.vrep()+float(self.Al)*self.val()+n*self.q*self.noise() + Dinformed*(self.target-self.pos()).normalize() + S*L/(N+L)*self.leader()
+        new_vector = self.vector + desired_vector
+    
         if new_vector.length() == 0:
             new_vector=zero
         else:
             new_vector=new_vector.normalize()
-        
-        new_vector *= s
-        
+    
+        new_vector *= normal_speed + self.q* max_speed
+    
         self.rect.x += new_vector.x
         self.rect.y += new_vector.y
-        
+    
         self.vector=new_vector
-        
+
+            
         self.noisex=noise(7)
         self.noisey=noise(7)
         
@@ -298,7 +312,6 @@ class Informed(pygame.sprite.Sprite):
                 self.rect.bottom = height
             if self.rect.top < 0:
                 self.rect.top = 0
-            
        
         self.noisex=noise(7)
         self.noisey=noise(7)
